@@ -2,6 +2,8 @@
 import React from 'react';
 import Recipe from '../models/Recipe';
 
+import './SavedRecipes.css';
+
 const SavedRecipes = ({ recipes, loadRecipe, deleteRecipe }) => {
   return (
     <div className="card">

@@ -3,6 +3,8 @@ import React from 'react';
 import Recipe from '../models/Recipe';
 import Ingredient from '../models/Ingredient';
 
+import './RecipeBuilder.css';
+
 const RecipeBuilder = ({
   currentRecipe,
   setCurrentRecipe,
