@@ -18,42 +18,53 @@ const RecipeBuilder = ({
       <div className="grid grid-lg-3">
         {/* Recipe Builder */}
         <div className="card lg-col-span-2">
-              <h2 className="card-title">Recipe Builder</h2>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <div className="form-group">
-                  <label className="form-label">Recipe Name</label>
-                  <input
-                    type="text"
-                    value={currentRecipe.name}
-                    onChange={(e) => setCurrentRecipe({...currentRecipe, name: e.target.value})}
-                    placeholder="Enter recipe name"
-                    className="form-input"
-                  />
-                </div>
+          <h2 className="card-title">Recipe Builder</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div className="form-group">
+              <label className="form-label">Recipe Name</label>
+              <input
+                type="text"
+                value={currentRecipe.name}
+                onChange={(e) => setCurrentRecipe({ ...currentRecipe, name: e.target.value })}
+                placeholder="Enter recipe name"
+                className="form-input"
+              />
+            </div>
 
-                <div className="form-grid-2">
-                  <div className="form-group">
-                    <label className="form-label">Labor Hours</label>
-                    <input
-                      type="number"
-                      step="0.25"
-                      value={currentRecipe.laborHours}
-                      onChange={(e) => setCurrentRecipe({...currentRecipe, laborHours: parseFloat(e.target.value) || 0})}
-                      className="form-input"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Labor Rate ($/hr)</label>
-                    <input
-                      type="number"
-                      step="0.50"
-                      value={currentRecipe.laborRate}
-                      onChange={(e) => setCurrentRecipe({...currentRecipe, laborRate: parseFloat(e.target.value) || 0})}
-                      className="form-input"
-                    />
-                  </div>
-                </div>
+            <div className="form-grid-3">
+              <div className="form-group">
+                <label className="form-label">Labor Hours</label>
+                <input
+                  type="number"
+                  step="1"
+                  value={currentRecipe.laborHours}
+                  onChange={(e) => setCurrentRecipe({ ...currentRecipe, laborHours: parseFloat(e.target.value) || 0 })}
+                  className="form-input"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Labor Minutes</label>
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  max="59"
+                  value={currentRecipe.laborMinutes || 0}
+                  onChange={(e) => setCurrentRecipe({ ...currentRecipe, laborMinutes: parseInt(e.target.value) || 0 })}
+                  className="form-input"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Labor Rate ($/hr)</label>
+                <input
+                  type="number"
+                  step="0.50"
+                  value={currentRecipe.laborRate}
+                  onChange={(e) => setCurrentRecipe({ ...currentRecipe, laborRate: parseFloat(e.target.value) || 0 })}
+                  className="form-input"
+                />
+              </div>
+            </div>
 
                 <div className="form-grid-3">
                   <div className="form-group">

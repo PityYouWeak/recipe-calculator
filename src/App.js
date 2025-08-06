@@ -4,15 +4,17 @@ import { Calculator, Package, TrendingUp, Save, Download } from 'lucide-react';
 
 import './App.css';
 
-import InventoryManager from './components/InventoryManager';
+import InventoryManagerComponent from './components/InventoryManager';
 import RecipeBuilder from './components/RecipeBuilder';
 import SavedRecipes from './components/SavedRecipes';
 import CostAnalysis from './components/CostAnalysis';
+import InventoryManager from './manager/InventoryManager';
+import RecipeManager from './manager/RecipeManager';
 
 const RecipeCostCalculator = () => { 
   const [activeTab, setActiveTab] = useState('inventory');
-  const [inventory, setInventory] = useState([]);
-  const [recipes, setRecipes] = useState([]);
+  const [inventoryManager, setInventoryManager] = useState(() => InventoryManager.load());
+  const [recipeManager, setRecipeManager] = useState(() => RecipeManager.load());
   const [currentRecipe, setCurrentRecipe] = useState({
     name: '',
     ingredients: [],
@@ -25,20 +27,12 @@ const RecipeCostCalculator = () => {
 
   // Load data from localStorage on component mount
   useEffect(() => {
-    const savedInventory = JSON.parse(localStorage.getItem('inventory') || '[]');
-    const savedRecipes = JSON.parse(localStorage.getItem('recipes') || '[]');
-    setInventory(savedInventory);
-    setRecipes(savedRecipes);
-  }, []);
-
-  // Save data to localStorage whenever state changes
-  useEffect(() => {
-    localStorage.setItem('inventory', JSON.stringify(inventory));
-  }, [inventory]);
+    inventoryManager.save();
+  }, [inventoryManager]);
 
   useEffect(() => {
-    localStorage.setItem('recipes', JSON.stringify(recipes));
-  }, [recipes]);
+    recipeManager.save();
+  }, [recipeManager]);
 
   const addInventoryItem = () => {
     const newItem = {
@@ -48,17 +42,21 @@ const RecipeCostCalculator = () => {
       cost: 0,
       category: 'ingredients'
     };
-    setInventory([...inventory, newItem]);
+    const updated = new InventoryManager([...inventoryManager.inventory]);
+    updated.addItem(newItem);
+    setInventoryManager(updated);
   };
 
   const updateInventoryItem = (id, field, value) => {
-    setInventory(inventory.map(item => 
-      item.id === id ? { ...item, [field]: value } : item
-    ));
+    const updated = new InventoryManager([...inventoryManager.inventory]);
+    updated.updateItem(id, field, value);
+    setInventoryManager(updated);
   };
 
   const deleteInventoryItem = (id) => {
-    setInventory(inventory.filter(item => item.id !== id));
+    const updated = new InventoryManager([...inventoryManager.inventory]);
+    updated.deleteItem(id);
+    setInventoryManager(updated);
   };
 
   const addIngredientToRecipe = (inventoryItem) => {
@@ -90,52 +88,27 @@ const RecipeCostCalculator = () => {
     });
   };
 
-  const calculateRecipeCost = () => {
-    const ingredientCost = currentRecipe.ingredients.reduce((total, ing) => {
-      return total + (ing.cost * ing.quantity);
-    }, 0);
-
-    const wasteAdjustedCost = ingredientCost * (1 + currentRecipe.wastePercent / 100);
-    const laborCost = currentRecipe.laborHours * currentRecipe.laborRate;
-    const baseCost = wasteAdjustedCost + laborCost;
-    const overheadCost = baseCost * (currentRecipe.overheadPercent / 100);
-    const totalCost = baseCost + overheadCost;
-    const sellingPrice = totalCost * (1 + currentRecipe.markupPercent / 100);
-    const profit = sellingPrice - totalCost;
-
-    return {
-      ingredientCost,
-      wasteAdjustedCost,
-      laborCost,
-      overheadCost,
-      totalCost,
-      sellingPrice,
-      profit,
-      profitMargin: (profit / sellingPrice) * 100
-    };
-  };
+  const calculateRecipeCost = () => RecipeManager.calculateCost(currentRecipe);
 
   const saveRecipe = () => {
     if (!currentRecipe.name.trim()) {
       alert('Please enter a recipe name');
       return;
     }
-    
     const recipeToSave = {
       ...currentRecipe,
       id: currentRecipe.id || Date.now(),
       createdAt: new Date().toISOString(),
       cost: calculateRecipeCost()
     };
-
-    const existingIndex = recipes.findIndex(r => r.id === recipeToSave.id);
+    const updated = new RecipeManager([...recipeManager.recipes]);
+    const existingIndex = updated.recipes.findIndex(r => r.id === recipeToSave.id);
     if (existingIndex >= 0) {
-      setRecipes(recipes.map((r, i) => i === existingIndex ? recipeToSave : r));
+      updated.updateRecipe(recipeToSave.id, recipeToSave);
     } else {
-      setRecipes([...recipes, recipeToSave]);
+      updated.addRecipe(recipeToSave);
     }
-
-    // Reset current recipe
+    setRecipeManager(updated);
     setCurrentRecipe({
       name: '',
       ingredients: [],
@@ -145,7 +118,6 @@ const RecipeCostCalculator = () => {
       markupPercent: 50,
       wastePercent: 5
     });
-
     alert('Recipe saved successfully!');
   };
 
@@ -155,11 +127,13 @@ const RecipeCostCalculator = () => {
   };
 
   const deleteRecipe = (id) => {
-    setRecipes(recipes.filter(r => r.id !== id));
+    const updated = new RecipeManager([...recipeManager.recipes]);
+    updated.deleteRecipe(id);
+    setRecipeManager(updated);
   };
 
   const exportData = () => {
-    const data = { inventory, recipes };
+    const data = { inventory: inventoryManager.inventory, recipes: recipeManager.recipes };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -214,8 +188,8 @@ const RecipeCostCalculator = () => {
       <div className="content-container">
 
         {activeTab === 'inventory' && (
-            <InventoryManager
-              inventory={inventory}
+            <InventoryManagerComponent
+              inventory={inventoryManager.inventory}
               addInventoryItem={addInventoryItem}
               updateInventoryItem={updateInventoryItem}
               deleteInventoryItem={deleteInventoryItem}
@@ -226,7 +200,7 @@ const RecipeCostCalculator = () => {
            <RecipeBuilder
             currentRecipe={currentRecipe}
             setCurrentRecipe={setCurrentRecipe}
-            inventory={inventory}
+            inventory={inventoryManager.inventory}
             addIngredientToRecipe={addIngredientToRecipe}
             updateRecipeIngredient={updateRecipeIngredient}
             removeRecipeIngredient={removeRecipeIngredient}
@@ -237,14 +211,14 @@ const RecipeCostCalculator = () => {
 
         {activeTab === 'saved' && (
           <SavedRecipes
-            recipes={recipes}
+            recipes={recipeManager.recipes}
             loadRecipe={loadRecipe}
             deleteRecipe={deleteRecipe}
           />
         )}
 
         {activeTab === 'analytics' && (
-          <CostAnalysis recipes={recipes} />
+          <CostAnalysis recipes={recipeManager.recipes} />
         )}
       </div>
     </div>
