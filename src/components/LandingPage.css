@@ -1,0 +1,252 @@
+.landing-root {
+  font-family: 'Inter', Arial, sans-serif;
+  color: #18181b;
+  background: #fafbfc;
+}
+
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 48px 24px 32px 24px;
+  background: #fff;
+  border-bottom: 1px solid #ececec;
+}
+.hero-content {
+  flex: 1 1 350px;
+  min-width: 320px;
+  max-width: 500px;
+}
+.hero-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  line-height: 1.1;
+}
+.hero-desc {
+  font-size: 1.15rem;
+  margin-bottom: 28px;
+  color: #52525b;
+}
+.hero-btn {
+  background: #6366f1;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 14px 32px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.08);
+  transition: background 0.2s;
+}
+.hero-btn:hover {
+  background: #4f46e5;
+}
+.hero-image {
+  flex: 1 1 320px;
+  min-width: 280px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+.screenshot-placeholder {
+  width: 340px;
+  height: 200px;
+  background: #f1f5f9;
+  border: 2px dashed #c7d2fe;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a5b4fc;
+  font-size: 1.2rem;
+}
+
+.features-section {
+  padding: 40px 16px 24px 16px;
+  background: #fafbfc;
+}
+.features-title {
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 32px;
+}
+.features-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 32px;
+}
+.feature-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 28px 24px;
+  width: 220px;
+  text-align: center;
+}
+.feature-icon {
+  font-size: 2.2rem;
+  margin-bottom: 12px;
+}
+.feature-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.feature-desc {
+  color: #52525b;
+  font-size: 1rem;
+}
+
+.steps-section {
+  background: #fff;
+  padding: 40px 16px 32px 16px;
+}
+.steps-title {
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 28px;
+}
+.steps-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 32px;
+}
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 220px;
+  font-size: 1.08rem;
+  font-weight: 500;
+}
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.step-num {
+  background: #6366f1;
+  color: #fff;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  margin-right: 8px;
+}
+.plans-table {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.plan-card {
+  background: #f1f5f9;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  padding: 24px 20px 18px 20px;
+  min-width: 160px;
+  text-align: center;
+}
+.plan-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+}
+.plan-price {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #6366f1;
+  margin-bottom: 8px;
+}
+.plan-period {
+  font-size: 1rem;
+  color: #52525b;
+  font-weight: 400;
+}
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: #52525b;
+  font-size: 1rem;
+}
+.plan-features li {
+  margin-bottom: 4px;
+}
+
+.testimonials-section {
+  background: #fafbfc;
+  padding: 36px 16px 40px 16px;
+}
+.testimonials-title {
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+.testimonials-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: center;
+}
+.testimonial-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  padding: 20px 18px 14px 18px;
+  min-width: 220px;
+  max-width: 320px;
+  text-align: left;
+}
+.testimonial-text {
+  font-size: 1.08rem;
+  color: #18181b;
+  margin-bottom: 10px;
+}
+.testimonial-user {
+  font-weight: 700;
+  color: #6366f1;
+}
+.testimonial-role {
+  font-weight: 400;
+  color: #52525b;
+  margin-left: 8px;
+  font-size: 0.98rem;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 32px;
+  }
+  .hero-image {
+    justify-content: flex-start;
+    padding-left: 0;
+  }
+}
+@media (max-width: 600px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  .features-grid, .steps-content, .testimonials-grid {
+    flex-direction: column;
+    gap: 18px;
+  }
+  .screenshot-placeholder {
+    width: 100%;
+    min-width: 0;
+    height: 160px;
+  }
+}

@@ -1,8 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 
 import { Calculator, Package, TrendingUp, Save, Download } from 'lucide-react';
 
 import './App.css';
+
 
 import InventoryManagerComponent from './components/InventoryManager';
 import RecipeBuilder from './components/RecipeBuilder';
@@ -10,8 +13,10 @@ import SavedRecipes from './components/SavedRecipes';
 import CostAnalysis from './components/CostAnalysis';
 import InventoryManager from './manager/InventoryManager';
 import RecipeManager from './manager/RecipeManager';
+import LandingPage from './components/LandingPage';
 
-const RecipeCostCalculator = () => { 
+
+const MainApp = () => {
   const [activeTab, setActiveTab] = useState('inventory');
   const [inventoryManager, setInventoryManager] = useState(() => InventoryManager.load());
   const [recipeManager, setRecipeManager] = useState(() => RecipeManager.load());
@@ -222,6 +227,21 @@ const RecipeCostCalculator = () => {
         )}
       </div>
     </div>
+  );
+};
+const LandingWithRoute = () => {
+  const navigate = useNavigate();
+  return <LandingPage onStart={() => navigate('/app')} />;
+};
+
+const RecipeCostCalculator = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingWithRoute />} />
+        <Route path="/app" element={<MainApp />} />
+      </Routes>
+    </Router>
   );
 };
 
