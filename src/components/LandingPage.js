@@ -132,8 +132,7 @@ const LandingPage = ({ onStart }) => (
       <div className="hero-content">
         <h1 className="hero-title">Take the Guesswork<br />Out of Your Food Pricing</h1>
         <p className="hero-desc">Instantly calculate recipe costs, markup, and profit margin with ease.</p>
-        {/* <button className="hero-btn" onClick={onStart}>Start Free – No Credit Card Need</button> */}
-        <button className="hero-btn">Start Free – No Credit Card Need</button>
+        <button className="hero-btn" onClick={onStart} disabled>Start Free – No Credit Card Need</button>
       </div>
       <div className="hero-image">
         <Slideshow />
