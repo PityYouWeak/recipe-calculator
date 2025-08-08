@@ -93,24 +93,24 @@ const features = [
 ];
 
 const plans = [
-  {
-    name: 'Free',
-    price: '$0',
-    period: '/month',
-    features: ['5 items', '3 recipes', 'No export']
-  },
-  {
-    name: 'Basic',
-    price: '$',
-    period: '/month',
-    features: ['50 items', '20 recipes', 'PDF export']
-  },
-  {
-    name: 'Pro',
-    price: '$',
-    period: '/month',
-    features: ['Unlimited items', 'CSV export', 'Profit simulator']
-  }
+  // {
+  //   name: 'Free',
+  //   price: '$0',
+  //   period: '/month',
+  //   features: ['5 items', '3 recipes', 'No export']
+  // },
+  // {
+  //   name: 'Basic',
+  //   price: '$',
+  //   period: '/month',
+  //   features: ['50 items', '20 recipes', 'PDF export']
+  // },
+  // {
+  //   name: 'Pro',
+  //   price: '$',
+  //   period: '/month',
+  //   features: ['Unlimited items', 'CSV export', 'Profit simulator']
+  // }
 ];
 
 const testimonials = [
@@ -132,7 +132,7 @@ const LandingPage = ({ onStart }) => (
       <div className="hero-content">
         <h1 className="hero-title">Take the Guesswork<br />Out of Your Food Pricing</h1>
         <p className="hero-desc">Instantly calculate recipe costs, markup, and profit margin with ease.</p>
-        <button className="hero-btn" onClick={onStart} disabled>Start Free – No Credit Card Need</button>
+        <button className="hero-btn" onClick={onStart}> Start Free</button>
       </div>
       <div className="hero-image">
         <Slideshow />
@@ -175,7 +175,7 @@ const LandingPage = ({ onStart }) => (
     </div>
 
     <div className="testimonials-section">
-      <h2 className="testimonials-title">Simple Pricing for everyone</h2>
+      {/* <h2 className="testimonials-title">Simple Pricing for everyone</h2> */}
       <div className="testimonials-grid">
         {testimonials.map(t => (
           <div className="testimonial-card" key={t.name}>
