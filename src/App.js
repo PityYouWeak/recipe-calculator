@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { Analytics } from "@vercel/analytics/react";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 
 import { Calculator, Package, TrendingUp, Save, Download } from 'lucide-react';
@@ -226,6 +227,7 @@ const MainApp = () => {
           <CostAnalysis recipes={recipeManager.recipes} />
         )}
       </div>
+        <Analytics />
     </div>
   );
 };
