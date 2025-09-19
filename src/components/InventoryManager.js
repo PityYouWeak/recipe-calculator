@@ -14,6 +14,26 @@ const InventoryManager = ({ inventory, addInventoryItem, updateInventoryItem, de
   const currencySymbol = {
     USD: '$', EUR: '€', GBP: '£', JPY: '¥', PHP: '₱'
   }[currency] || '$';
+
+  // Handler for saving inventory to the database
+  const handleSaveInventory = async () => {
+    try {
+      const response = await fetch('/api/inventory-save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ inventory }),
+      });
+      if (response.ok) {
+        alert('Inventory saved successfully!');
+      } else {
+        alert('Failed to save inventory.');
+      }
+    } catch (error) {
+      alert('Error saving inventory.');
+    }
+  };
   return (
     <div className="card">
       <div className="card-header">
@@ -34,6 +54,9 @@ const InventoryManager = ({ inventory, addInventoryItem, updateInventoryItem, de
           <button onClick={addInventoryItem} className="btn btn-primary">
             <Plus size={16} />
             <span>Add Item</span>
+          </button>
+          <button onClick={handleSaveInventory} className="btn btn-success" style={{ marginLeft: '1rem' }}>
+            <span>Save to Database</span>
           </button>
         </div>
       </div>
