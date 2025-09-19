@@ -15,7 +15,7 @@ const InventoryManager = ({ inventory, addInventoryItem, updateInventoryItem, de
     USD: '$', EUR: '€', GBP: '£', JPY: '¥', PHP: '₱'
   }[currency] || '$';
 
-  // Handler for saving inventory to the database
+  // Handler for saving inventory to Neon DB
   const handleSaveInventory = async () => {
     try {
       const response = await fetch('/api/inventory-save', {
@@ -26,7 +26,8 @@ const InventoryManager = ({ inventory, addInventoryItem, updateInventoryItem, de
         body: JSON.stringify({ inventory }),
       });
       if (response.ok) {
-        alert('Inventory saved successfully!');
+        const result = await response.json();
+        alert(result.message || 'Inventory saved!');
       } else {
         alert('Failed to save inventory.');
       }
