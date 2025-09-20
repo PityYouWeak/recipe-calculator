@@ -15,9 +15,39 @@ import CostAnalysis from './components/CostAnalysis';
 import InventoryManager from './manager/InventoryManager';
 import RecipeManager from './manager/RecipeManager';
 import LandingPage from './components/LandingPage';
+import AuthPage from './components/AuthPage';
 
 
 const MainApp = () => {
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  // Redirect to /auth if not logged in
+  React.useEffect(() => {
+    async function fetchUser() {
+      try {
+        const res = await fetch('/api/auth', { method: 'GET', credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+        } else {
+          setUser(null);
+          navigate('/auth');
+        }
+      } catch {
+        setUser(null);
+        navigate('/auth');
+      }
+    }
+    fetchUser();
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    // Remove cookie by setting it expired
+    document.cookie = 'token=; Max-Age=0; Path=/;';
+    setUser(null);
+    navigate('/auth');
+  };
   const [activeTab, setActiveTab] = useState('inventory');
   const [inventoryManager, setInventoryManager] = useState(() => InventoryManager.load());
   const [recipeManager, setRecipeManager] = useState(() => RecipeManager.load());
@@ -152,6 +182,13 @@ const MainApp = () => {
 
   return (
     <div className="app-container">
+      {/* Show logged-in manager info and logout button */}
+      {user && (
+        <div style={{ position: 'absolute', top: 10, right: 10, fontWeight: 600, fontSize: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span>Manager: {user.name || user.email}</span>
+          <button className="btn btn-secondary" style={{ padding: '2px 10px', fontSize: 14 }} onClick={handleLogout}>Logout</button>
+        </div>
+      )}
       {/* Header */}
       <div className="header">
         <div className="header-content">
@@ -230,10 +267,10 @@ const MainApp = () => {
         <Analytics />
     </div>
   );
-};
+}
 const LandingWithRoute = () => {
   const navigate = useNavigate();
-  return <LandingPage onStart={() => navigate('/app')} />;
+  return <LandingPage onStart={() => navigate('/auth')} />;
 };
 
 const RecipeCostCalculator = () => {
@@ -242,6 +279,7 @@ const RecipeCostCalculator = () => {
       <Routes>
         <Route path="/" element={<LandingWithRoute />} />
         <Route path="/app" element={<MainApp />} />
+        <Route path="/auth" element={<AuthPage />} />
       </Routes>
     </Router>
   );
