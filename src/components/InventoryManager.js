@@ -1,5 +1,6 @@
 import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 
 const currencyOptions = [
   { value: 'USD', label: 'USD ($)' },
@@ -9,7 +10,45 @@ const currencyOptions = [
   { value: 'PHP', label: 'PHP (₱)' },
 ];
 
-const InventoryManager = ({ inventory, addInventoryItem, updateInventoryItem, deleteInventoryItem }) => {
+const InventoryManager = ({ inventory, setInventoryManager, user }) => {
+  // Add inventory item
+  const addInventoryItem = () => {
+    const newItem = {
+      id: uuidv4(),
+      name: '',
+      unit: 'oz',
+      cost: 0,
+      category: 'ingredients'
+    };
+    const updated = [...inventory, newItem];
+    setInventoryManager(prev => {
+      const mgr = { ...prev, inventory: updated };
+      if (mgr.save) mgr.save();
+      return mgr;
+    });
+  };
+
+  // Update inventory item
+  const updateInventoryItem = (id, field, value) => {
+    const updated = inventory.map(item =>
+      item.id === id ? { ...item, [field]: value } : item
+    );
+    setInventoryManager(prev => {
+      const mgr = { ...prev, inventory: updated };
+      if (mgr.save) mgr.save();
+      return mgr;
+    });
+  };
+
+  // Delete inventory item
+  const deleteInventoryItem = (id) => {
+    const updated = inventory.filter(item => item.id !== id);
+    setInventoryManager(prev => {
+      const mgr = { ...prev, inventory: updated };
+      if (mgr.save) mgr.save();
+      return mgr;
+    });
+  };
   const [currency, setCurrency] = React.useState('USD');
   const currencySymbol = {
     USD: '$', EUR: '€', GBP: '£', JPY: '¥', PHP: '₱'
@@ -18,12 +57,13 @@ const InventoryManager = ({ inventory, addInventoryItem, updateInventoryItem, de
   // Handler for saving inventory to Neon DB
   const handleSaveInventory = async () => {
     try {
+      console.log('Saving inventory for userId:', user?.id);
       const response = await fetch('/api/inventory-save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ inventory }),
+        body: JSON.stringify({ inventory, userId: user?.id }),
       });
       if (response.ok) {
         const result = await response.json();
@@ -140,6 +180,6 @@ const InventoryManager = ({ inventory, addInventoryItem, updateInventoryItem, de
       </div>
     </div>
   );
-};
+}
 
 export default InventoryManager;

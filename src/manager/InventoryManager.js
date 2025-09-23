@@ -3,6 +3,23 @@ class InventoryManager {
     this.inventory = inventory;
   }
 
+  static async syncWithDb(userId) {
+    if (navigator.onLine) {
+      try {
+        const response = await fetch(`/api/inventory-get?userId=${userId}`);
+        if (response.ok) {
+          const data = await response.json();
+          localStorage.setItem('inventory', JSON.stringify(data.inventory));
+          return new InventoryManager(data.inventory);
+        }
+      } catch (err) {
+        console.error('Failed to sync inventory from DB:', err);
+      }
+    }
+    // Fallback to localStorage
+    return InventoryManager.load();
+  }
+
   addItem(item) {
     this.inventory.push(item);
     return [...this.inventory];

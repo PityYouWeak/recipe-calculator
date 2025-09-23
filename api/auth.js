@@ -63,8 +63,21 @@ export default async function handler(req, res) {
     const match = cookie.match(/token=([^;]+)/);
     if (!match) return res.status(401).json({ message: 'Not authenticated' });
     try {
-      const user = jwt.verify(match[1], SECRET);
-      res.status(200).json({ user });
+      const tokenUser = jwt.verify(match[1], SECRET);
+      // Fetch user from DB to get id
+      let dbUser;
+      try {
+        const result = await sql.query('SELECT id, name, email FROM users WHERE email = $1', [tokenUser.email]);
+        if (Array.isArray(result) && result.length > 0) {
+          dbUser = result[0];
+        } else {
+          return res.status(404).json({ message: 'User not found' });
+        }
+      } catch (err) {
+        console.error('DB error:', err);
+        return res.status(500).json({ message: 'Database error', error: err.message });
+      }
+      res.status(200).json({ user: dbUser });
     } catch {
       res.status(401).json({ message: 'Invalid token' });
     }

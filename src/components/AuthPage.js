@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
 import { loginOrRegister } from '../utils/auth';
 
@@ -15,8 +16,35 @@ const AuthPage = () => {
     e.preventDefault();
     setError('');
     const type = isLogin ? 'login' : 'register';
+    console.log(navigator.onLine);
+    if (!navigator.onLine && isLogin) {
+      // Offline: try to validate JWT from localStorage
+      const token = localStorage.getItem('jwt');
+      if (token) {
+        try {
+          const decoded = jwtDecode(token);
+          // Check expiration
+          if (decoded.exp && Date.now() / 1000 < decoded.exp && decoded.email === email) {
+            setTimeout(() => navigate('/app'), 150);
+            return;
+          } else {
+            setError('Offline session expired or email mismatch');
+            return;
+          }
+        } catch {
+          setError('Invalid offline session');
+          return;
+        }
+      } else {
+        setError('No offline session available');
+        return;
+      }
+    }
+    // Online: normal login/register
     const result = await loginOrRegister({ email, password, name, type });
     if (result && result.user) {
+      // Save JWT for offline use
+      if (result.token) localStorage.setItem('jwt', result.token);
       setTimeout(() => navigate('/app'), 150);
     } else {
       setError(result.message || 'Authentication failed');

@@ -2,12 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Analytics } from "@vercel/analytics/react";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-
 import { Calculator, Package, TrendingUp, Save, Download } from 'lucide-react';
-
 import './App.css';
-
-
 import InventoryManagerComponent from './components/InventoryManager';
 import RecipeBuilder from './components/RecipeBuilder';
 import SavedRecipes from './components/SavedRecipes';
@@ -30,6 +26,7 @@ const MainApp = () => {
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
+          console.log('Logged in user:', data.user);
         } else {
           setUser(null);
           navigate('/auth');
@@ -49,7 +46,7 @@ const MainApp = () => {
     navigate('/auth');
   };
   const [activeTab, setActiveTab] = useState('inventory');
-  const [inventoryManager, setInventoryManager] = useState(() => InventoryManager.load());
+  const [inventoryManager, setInventoryManager] = useState(null);
   const [recipeManager, setRecipeManager] = useState(() => RecipeManager.load());
   const [currentRecipe, setCurrentRecipe] = useState({
     name: '',
@@ -61,39 +58,21 @@ const MainApp = () => {
     wastePercent: 5
   });
 
-  // Load data from localStorage on component mount
+  // Load inventory from DB after user is set
   useEffect(() => {
-    inventoryManager.save();
+    if (user && user.id) {
+      InventoryManager.syncWithDb(user.id).then(setInventoryManager);
+    }
+  }, [user]);
+
+  // Save inventory to localStorage when inventoryManager changes
+  useEffect(() => {
+    if (inventoryManager instanceof InventoryManager) inventoryManager.save();
   }, [inventoryManager]);
 
   useEffect(() => {
     recipeManager.save();
   }, [recipeManager]);
-
-  const addInventoryItem = () => {
-    const newItem = {
-      id: Date.now(),
-      name: '',
-      unit: 'oz',
-      cost: 0,
-      category: 'ingredients'
-    };
-    const updated = new InventoryManager([...inventoryManager.inventory]);
-    updated.addItem(newItem);
-    setInventoryManager(updated);
-  };
-
-  const updateInventoryItem = (id, field, value) => {
-    const updated = new InventoryManager([...inventoryManager.inventory]);
-    updated.updateItem(id, field, value);
-    setInventoryManager(updated);
-  };
-
-  const deleteInventoryItem = (id) => {
-    const updated = new InventoryManager([...inventoryManager.inventory]);
-    updated.deleteItem(id);
-    setInventoryManager(updated);
-  };
 
   const addIngredientToRecipe = (inventoryItem) => {
     const existingIngredient = currentRecipe.ingredients.find(ing => ing.id === inventoryItem.id);
@@ -230,12 +209,11 @@ const MainApp = () => {
       {/* Content */}
       <div className="content-container">
 
-        {activeTab === 'inventory' && (
+        {activeTab === 'inventory' && inventoryManager && (
             <InventoryManagerComponent
               inventory={inventoryManager.inventory}
-              addInventoryItem={addInventoryItem}
-              updateInventoryItem={updateInventoryItem}
-              deleteInventoryItem={deleteInventoryItem}
+              setInventoryManager={setInventoryManager}
+              user={user}
           />
         )}
 
