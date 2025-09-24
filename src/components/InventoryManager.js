@@ -24,6 +24,7 @@ const InventoryManager = ({ inventory, setInventoryManager, user }) => {
     setInventoryManager(prev => {
       const mgr = { ...prev, inventory: updated };
       if (mgr.save) mgr.save();
+      console.log(mgr);
       return mgr;
     });
   };
