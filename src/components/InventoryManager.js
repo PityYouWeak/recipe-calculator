@@ -24,7 +24,6 @@ const InventoryManager = ({ inventory, setInventoryManager, user }) => {
     setInventoryManager(prev => {
       const mgr = { ...prev, inventory: updated };
       if (mgr.save) mgr.save();
-      console.log(mgr);
       return mgr;
     });
   };
@@ -58,7 +57,6 @@ const InventoryManager = ({ inventory, setInventoryManager, user }) => {
   // Handler for saving inventory to Neon DB
   const handleSaveInventory = async () => {
     try {
-      console.log('Saving inventory for userId:', user?.id);
       const response = await fetch('/api/inventory-save', {
         method: 'POST',
         headers: {

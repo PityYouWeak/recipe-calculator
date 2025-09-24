@@ -26,7 +26,6 @@ const MainApp = () => {
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
-          console.log('Logged in user:', data.user);
         } else {
           setUser(null);
           navigate('/auth');

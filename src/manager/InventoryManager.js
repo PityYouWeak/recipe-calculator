@@ -11,7 +11,6 @@ class InventoryManager {
           const data = await response.json();
           localStorage.removeItem('inventory');
           localStorage.setItem('inventory', JSON.stringify(data.inventory));
-          console.log(data.inventory);
           return new InventoryManager(data.inventory);
         }
       } catch (err) {

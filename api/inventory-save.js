@@ -10,7 +10,6 @@ export default async function handler(req, res) {
     }
     try {
       for (const item of inventory) {
-        console.log(item);
          await sql.query(
            `INSERT INTO inventory_items (id, name, unit, cost, category)
             VALUES ($1, $2, $3, $4, $5)
