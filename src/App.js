@@ -218,14 +218,8 @@ const MainApp = () => {
 
         {activeTab === 'recipes' && (
            <RecipeBuilder
-            currentRecipe={currentRecipe}
-            setCurrentRecipe={setCurrentRecipe}
             inventory={inventoryManager.inventory}
-            addIngredientToRecipe={addIngredientToRecipe}
-            updateRecipeIngredient={updateRecipeIngredient}
-            removeRecipeIngredient={removeRecipeIngredient}
-            saveRecipe={saveRecipe}
-            costs={costs}
+            user={user}
           />
         )}
 

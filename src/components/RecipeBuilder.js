@@ -1,17 +1,104 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Save, Trash2 } from 'lucide-react';
 import HelpSection from './HelpSection';
-const RecipeBuilder = ({
-  currentRecipe,
-  setCurrentRecipe,
-  inventory,
-  addIngredientToRecipe,
-  updateRecipeIngredient,
-  removeRecipeIngredient,
-  saveRecipe,
-  costs
-}) => {
+
+const RecipeBuilder = ({ inventory, user }) => {
+  const [currentRecipe, setCurrentRecipe] = useState({
+    name: '',
+    ingredients: [],
+    laborHours: 0,
+    laborMinutes: 0,
+    laborRate: 15,
+    overheadPercent: 10,
+    markupPercent: 50,
+    wastePercent: 5
+  });
+
+  // Add ingredient to recipe
+  const addIngredientToRecipe = (inventoryItem) => {
+    const existingIngredient = currentRecipe.ingredients.find(ing => ing.id === inventoryItem.id);
+    if (!existingIngredient) {
+      setCurrentRecipe(prev => ({
+        ...prev,
+        ingredients: [...prev.ingredients, { ...inventoryItem, quantity: 1 }]
+      }));
+    }
+  };
+
+  // Update ingredient in recipe
+  const updateRecipeIngredient = (id, field, value) => {
+    setCurrentRecipe(prev => ({
+      ...prev,
+      ingredients: prev.ingredients.map(ing =>
+        ing.id === id ? { ...ing, [field]: parseFloat(value) || 0 } : ing
+      )
+    }));
+  };
+
+  // Remove ingredient from recipe
+  const removeRecipeIngredient = (id) => {
+    setCurrentRecipe(prev => ({
+      ...prev,
+      ingredients: prev.ingredients.filter(ing => ing.id !== id)
+    }));
+  };
+
+  // Calculate costs (simple version)
+  const calculateRecipeCost = () => {
+    const ingredientCost = currentRecipe.ingredients.reduce((sum, ing) => sum + (ing.cost * ing.quantity), 0);
+    const wasteAdjustedCost = ingredientCost * (1 + (currentRecipe.wastePercent || 0) / 100);
+    const laborCost = ((currentRecipe.laborHours || 0) + (currentRecipe.laborMinutes || 0) / 60) * (currentRecipe.laborRate || 0);
+    const overheadCost = (wasteAdjustedCost + laborCost) * (currentRecipe.overheadPercent || 0) / 100;
+    const totalCost = wasteAdjustedCost + laborCost + overheadCost;
+    const sellingPrice = totalCost * (1 + (currentRecipe.markupPercent || 0) / 100);
+    const profitMargin = sellingPrice ? ((sellingPrice - totalCost) / sellingPrice) * 100 : 0;
+    return {
+      ingredientCost,
+      wasteAdjustedCost,
+      laborCost,
+      overheadCost,
+      totalCost,
+      sellingPrice,
+      profitMargin
+    };
+  };
+  const costs = calculateRecipeCost();
+
+  // Save recipe (local only, can be extended to DB)
+  const saveRecipe = async () => {
+    if (!currentRecipe.name.trim()) {
+      alert('Please enter a recipe name');
+      return;
+    }
+
+    try {
+      console.log(user?.id);
+      const response = await fetch('/api/recipe-save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...currentRecipe, cost: costs, userId: user?.id })
+      });
+      if (response.ok) {
+        alert('Recipe saved to database!');
+        setCurrentRecipe({
+          name: '',
+          ingredients: [],
+          laborHours: 0,
+          laborMinutes: 0,
+          laborRate: 15,
+          overheadPercent: 10,
+          markupPercent: 50,
+          wastePercent: 5
+        });
+      } else {
+        alert('Failed to save recipe.');
+      }
+    } catch {
+      alert('Error saving recipe.');
+    }
+  };
+
   return (
     <div>
       <HelpSection />
@@ -112,7 +199,7 @@ const RecipeBuilder = ({
                         className="ingredient-button"
                       >
                         <div className="ingredient-name">{item.name}</div>
-                        <div className="ingredient-price">${item.cost.toFixed(2)} per {item.unit}</div>
+                        <div className="ingredient-price">${item.cost} per {item.unit}</div>
                       </button>
                     ))}
                   </div>
@@ -125,7 +212,7 @@ const RecipeBuilder = ({
                       <div key={ing.id} className="recipe-ingredient">
                         <div className="recipe-ingredient-info">
                           <div className="ingredient-name">{ing.name}</div>
-                          <div className="ingredient-price">${ing.cost.toFixed(2)} per {ing.unit}</div>
+                          <div className="ingredient-price">${ing.cost} per {ing.unit}</div>
                         </div>
                         <div className="recipe-ingredient-controls">
                           <input
