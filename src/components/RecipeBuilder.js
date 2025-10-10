@@ -2,18 +2,9 @@
 import React, { useState } from 'react';
 import { Save, Trash2 } from 'lucide-react';
 import HelpSection from './HelpSection';
+import calculateRecipeCost from '../utils/RecipeCostCalculator';
 
-const RecipeBuilder = ({ inventory, user }) => {
-  const [currentRecipe, setCurrentRecipe] = useState({
-    name: '',
-    ingredients: [],
-    laborHours: 0,
-    laborMinutes: 0,
-    laborRate: 15,
-    overheadPercent: 10,
-    markupPercent: 50,
-    wastePercent: 5
-  });
+const RecipeBuilder = ({ inventory, user, currentRecipe, setCurrentRecipe }) => {
 
   // Add ingredient to recipe
   const addIngredientToRecipe = (inventoryItem) => {
@@ -30,9 +21,10 @@ const RecipeBuilder = ({ inventory, user }) => {
   const updateRecipeIngredient = (id, field, value) => {
     setCurrentRecipe(prev => ({
       ...prev,
-      ingredients: prev.ingredients.map(ing =>
-        ing.id === id ? { ...ing, [field]: parseFloat(value) || 0 } : ing
-      )
+      ingredients: prev.ingredients.map(ing => {
+        const key = ing.ingredient_id || ing.id;
+        return key === id ? { ...ing, [field]: parseFloat(value) || 0 } : ing;
+      })
     }));
   };
 
@@ -40,30 +32,15 @@ const RecipeBuilder = ({ inventory, user }) => {
   const removeRecipeIngredient = (id) => {
     setCurrentRecipe(prev => ({
       ...prev,
-      ingredients: prev.ingredients.filter(ing => ing.id !== id)
+      ingredients: prev.ingredients.filter(ing => {
+        const key = ing.ingredient_id || ing.id;
+        return key !== id;
+      })
     }));
   };
 
-  // Calculate costs (simple version)
-  const calculateRecipeCost = () => {
-    const ingredientCost = currentRecipe.ingredients.reduce((sum, ing) => sum + (ing.cost * ing.quantity), 0);
-    const wasteAdjustedCost = ingredientCost * (1 + (currentRecipe.wastePercent || 0) / 100);
-    const laborCost = ((currentRecipe.laborHours || 0) + (currentRecipe.laborMinutes || 0) / 60) * (currentRecipe.laborRate || 0);
-    const overheadCost = (wasteAdjustedCost + laborCost) * (currentRecipe.overheadPercent || 0) / 100;
-    const totalCost = wasteAdjustedCost + laborCost + overheadCost;
-    const sellingPrice = totalCost * (1 + (currentRecipe.markupPercent || 0) / 100);
-    const profitMargin = sellingPrice ? ((sellingPrice - totalCost) / sellingPrice) * 100 : 0;
-    return {
-      ingredientCost,
-      wasteAdjustedCost,
-      laborCost,
-      overheadCost,
-      totalCost,
-      sellingPrice,
-      profitMargin
-    };
-  };
-  const costs = calculateRecipeCost();
+  // Use shared cost calculation utility
+  const costs = calculateRecipeCost(currentRecipe);
 
   // Save recipe (local only, can be extended to DB)
   const saveRecipe = async () => {
@@ -97,6 +74,14 @@ const RecipeBuilder = ({ inventory, user }) => {
     } catch {
       alert('Error saving recipe.');
     }
+  };
+
+  // Ensure default values for percent fields if missing
+  const safeRecipe = {
+    ...currentRecipe,
+    overheadPercent: currentRecipe.overheadPercent ?? 10,
+    markupPercent: currentRecipe.markupPercent ?? 50,
+    wastePercent: currentRecipe.wastePercent ?? 5,
   };
 
   return (
@@ -160,8 +145,8 @@ const RecipeBuilder = ({ inventory, user }) => {
                     <input
                       type="number"
                       step="1"
-                      value={currentRecipe.overheadPercent}
-                      onChange={(e) => setCurrentRecipe({...currentRecipe, overheadPercent: parseFloat(e.target.value) || 0})}
+                      value={safeRecipe.overheadPercent}
+                      onChange={(e) => setCurrentRecipe({ ...currentRecipe, overheadPercent: parseFloat(e.target.value) || 0 })}
                       className="form-input"
                     />
                   </div>
@@ -171,8 +156,8 @@ const RecipeBuilder = ({ inventory, user }) => {
                     <input
                       type="number"
                       step="1"
-                      value={currentRecipe.markupPercent}
-                      onChange={(e) => setCurrentRecipe({...currentRecipe, markupPercent: parseFloat(e.target.value) || 0})}
+                      value={safeRecipe.markupPercent}
+                      onChange={(e) => setCurrentRecipe({ ...currentRecipe, markupPercent: parseFloat(e.target.value) || 0 })}
                       className="form-input"
                     />
                   </div>
@@ -182,8 +167,8 @@ const RecipeBuilder = ({ inventory, user }) => {
                     <input
                       type="number"
                       step="1"
-                      value={currentRecipe.wastePercent}
-                      onChange={(e) => setCurrentRecipe({...currentRecipe, wastePercent: parseFloat(e.target.value) || 0})}
+                      value={safeRecipe.wastePercent}
+                      onChange={(e) => setCurrentRecipe({ ...currentRecipe, wastePercent: parseFloat(e.target.value) || 0 })}
                       className="form-input"
                     />
                   </div>
@@ -208,33 +193,37 @@ const RecipeBuilder = ({ inventory, user }) => {
                 <div className="form-group">
                   <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1a1a1a', marginBottom: '1rem' }}>Recipe Ingredients</h3>
                   <div>
-                    {currentRecipe.ingredients.map(ing => (
-                      <div key={ing.id} className="recipe-ingredient">
-                        <div className="recipe-ingredient-info">
-                          <div className="ingredient-name">{ing.name}</div>
-                          <div className="ingredient-price">${ing.cost} per {ing.unit}</div>
-                        </div>
-                        <div className="recipe-ingredient-controls">
-                          <input
-                            type="number"
-                            step="0.1"
-                            value={ing.quantity}
-                            onChange={(e) => updateRecipeIngredient(ing.id, 'quantity', e.target.value)}
-                            className="quantity-input"
-                          />
-                          <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>{ing.unit}</span>
-                          <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1a1a1a', minWidth: '4rem' }}>
-                            ${(ing.cost * ing.quantity).toFixed(2)}
+                    {currentRecipe.ingredients.map(ing => {
+                      // Use ingredient_id if present, else id
+                      const key = ing.ingredient_id || ing.id;
+                      return (
+                        <div key={key} className="recipe-ingredient">
+                          <div className="recipe-ingredient-info">
+                            <div className="ingredient-name">{ing.name}</div>
+                            <div className="ingredient-price">${ing.cost} per {ing.unit}</div>
                           </div>
-                          <button
-                            onClick={() => removeRecipeIngredient(ing.id)}
-                            className="btn btn-danger"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          <div className="recipe-ingredient-controls">
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={ing.quantity}
+                              onChange={(e) => updateRecipeIngredient(key, 'quantity', e.target.value)}
+                              className="quantity-input"
+                            />
+                            <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>{ing.unit}</span>
+                            <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1a1a1a', minWidth: '4rem' }}>
+                              ${(ing.cost * ing.quantity).toFixed(2)}
+                            </div>
+                            <button
+                              onClick={() => removeRecipeIngredient(key)}
+                              className="btn btn-danger"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 

@@ -1,7 +1,8 @@
+
 import { sql } from '@vercel/postgres';
+import Recipe from '../src/models/Recipe.js';
 
 export default async function handler(req, res) {
-    console.log(req.method);
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -29,11 +30,15 @@ export default async function handler(req, res) {
       if (!ingredientsByRecipe[ing.recipe_id]) ingredientsByRecipe[ing.recipe_id] = [];
       ingredientsByRecipe[ing.recipe_id].push(ing);
     }
-    // Attach ingredients to recipes
-    const recipesWithIngredients = recipes.rows.map(r => ({
-      ...r,
-      ingredients: ingredientsByRecipe[r.id] || []
-    }));
+    // Attach ingredients to recipes and map to Recipe model (camelCase)
+    const recipesWithIngredients = recipes.rows.map(r => {
+      const recipeObj = {
+        ...r,
+        ingredients: ingredientsByRecipe[r.id] || []
+      };
+      return Recipe.fromBackend(recipeObj);
+    });
+    console.log(recipesWithIngredients);
     return res.status(200).json(recipesWithIngredients);
   } catch (error) {
     return res.status(500).json({ error: 'Failed to fetch recipes', details: error.message });

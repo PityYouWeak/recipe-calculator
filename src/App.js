@@ -136,6 +136,7 @@ const MainApp = () => {
   };
 
   const loadRecipe = (recipe) => {
+    console.log(recipe);
     setCurrentRecipe(recipe);
     setActiveTab('recipes');
   };
@@ -220,6 +221,8 @@ const MainApp = () => {
            <RecipeBuilder
             inventory={inventoryManager.inventory}
             user={user}
+            currentRecipe={currentRecipe}
+            setCurrentRecipe={setCurrentRecipe}
           />
         )}
 
