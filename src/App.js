@@ -225,7 +225,7 @@ const MainApp = () => {
 
         {activeTab === 'saved' && (
           <SavedRecipes
-            recipes={recipeManager.recipes}
+            user={user}
             loadRecipe={loadRecipe}
             deleteRecipe={deleteRecipe}
           />
