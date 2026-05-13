@@ -43,8 +43,16 @@ const AuthPage = () => {
     // Online: normal login/register
     const result = await loginOrRegister({ email, password, name, type });
     if (result && result.user) {
+      console.log(result);
       // Save JWT for offline use
       if (result.token) localStorage.setItem('jwt', result.token);
+      // If the authenticated user is a cashier, send them to the cashier POS
+      if (result.user.role === 'cashier') {
+        setTimeout(() => navigate('/cashier'), 150);
+        return;
+      }
+      // Otherwise assume manager and activate the Cashiers tab in the app
+      try { sessionStorage.setItem('activateCashiers', '1'); } catch {}
       setTimeout(() => navigate('/app'), 150);
     } else {
       setError(result.message || 'Authentication failed');
@@ -67,8 +75,8 @@ const AuthPage = () => {
           />
         )}
         <input
-          type="email"
-          placeholder="Email"
+          type="text"
+          placeholder="Email or username"
           value={email}
           onChange={e => setEmail(e.target.value)}
           required

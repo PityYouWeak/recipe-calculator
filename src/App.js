@@ -8,6 +8,8 @@ import InventoryManagerComponent from './components/InventoryManager';
 import RecipeBuilder from './components/RecipeBuilder';
 import SavedRecipes from './components/SavedRecipes';
 import CostAnalysis from './components/CostAnalysis';
+import CashierManager from './components/CashierManager';
+import CashierPOS from './components/CashierPOS';
 import InventoryManager from './manager/InventoryManager';
 import RecipeManager from './manager/RecipeManager';
 import LandingPage from './components/LandingPage';
@@ -18,11 +20,16 @@ const MainApp = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  // Redirect to /auth if not logged in
+  // Redirect to /auth if not actged in
   React.useEffect(() => {
     async function fetchUser() {
       try {
-        const res = await fetch('/api/auth', { method: 'GET', credentials: 'include' });
+        const headers = { credentials: 'include' };
+        const token = localStorage.getItem('jwt');
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+        const res = await fetch('/api/auth', { method: 'GET', ...headers });
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
@@ -64,6 +71,20 @@ const MainApp = () => {
     }
   }, [user]);
 
+  // If manager just logged in, the AuthPage sets a session flag so we can
+  // activate the Cashier tab once and then clear the flag.
+  useEffect(() => {
+    try {
+      const activate = sessionStorage.getItem('activateCashiers');
+      if (activate === '1') {
+        setActiveTab('cashiers');
+        sessionStorage.removeItem('activateCashiers');
+      }
+    } catch {
+      // ignore session errors
+    }
+  }, [user]);
+
   // Save inventory to localStorage when inventoryManager changes
   useEffect(() => {
     if (inventoryManager instanceof InventoryManager) inventoryManager.save();
@@ -73,67 +94,7 @@ const MainApp = () => {
     recipeManager.save();
   }, [recipeManager]);
 
-  const addIngredientToRecipe = (inventoryItem) => {
-    const existingIngredient = currentRecipe.ingredients.find(ing => ing.id === inventoryItem.id);
-    if (!existingIngredient) {
-      setCurrentRecipe({
-        ...currentRecipe,
-        ingredients: [...currentRecipe.ingredients, {
-          ...inventoryItem,
-          quantity: 1
-        }]
-      });
-    }
-  };
-
-  const updateRecipeIngredient = (id, field, value) => {
-    setCurrentRecipe({
-      ...currentRecipe,
-      ingredients: currentRecipe.ingredients.map(ing =>
-        ing.id === id ? { ...ing, [field]: parseFloat(value) || 0 } : ing
-      )
-    });
-  };
-
-  const removeRecipeIngredient = (id) => {
-    setCurrentRecipe({
-      ...currentRecipe,
-      ingredients: currentRecipe.ingredients.filter(ing => ing.id !== id)
-    });
-  };
-
-  const calculateRecipeCost = () => RecipeManager.calculateCost(currentRecipe);
-
-  const saveRecipe = () => {
-    if (!currentRecipe.name.trim()) {
-      alert('Please enter a recipe name');
-      return;
-    }
-    const recipeToSave = {
-      ...currentRecipe,
-      id: currentRecipe.id || Date.now(),
-      createdAt: new Date().toISOString(),
-      cost: calculateRecipeCost()
-    };
-    const updated = new RecipeManager([...recipeManager.recipes]);
-    const existingIndex = updated.recipes.findIndex(r => r.id === recipeToSave.id);
-    if (existingIndex >= 0) {
-      updated.updateRecipe(recipeToSave.id, recipeToSave);
-    } else {
-      updated.addRecipe(recipeToSave);
-    }
-    setRecipeManager(updated);
-    setCurrentRecipe({
-      name: '',
-      ingredients: [],
-      laborHours: 0,
-      laborRate: 15,
-      overheadPercent: 10,
-      markupPercent: 50,
-      wastePercent: 5
-    });
-    alert('Recipe saved successfully!');
-  };
+  // Local recipe management moved to components/managers; helpers removed to avoid duplication
 
   const loadRecipe = (recipe) => {
     console.log(recipe);
@@ -157,7 +118,7 @@ const MainApp = () => {
     a.click();
   };
 
-  const costs = calculateRecipeCost();
+  
 
   return (
     <div className="app-container">
@@ -189,8 +150,8 @@ const MainApp = () => {
             { id: 'inventory', label: 'Inventory', icon: Package },
             { id: 'recipes', label: 'Recipe Builder', icon: Calculator },
             { id: 'saved', label: 'Saved Recipes', icon: Save },
-            { id: 'analytics', label: 'Cost Analysis', icon: TrendingUp }
-          ].map(tab => {
+            { id: 'analytics', label: 'Cost Analysis', icon: TrendingUp },
+          ].concat(user ? [{ id: 'cashiers', label: 'Cashiers', icon: Save }] : []).map(tab => {
             const Icon = tab.icon;
             return (
               <button
@@ -234,8 +195,13 @@ const MainApp = () => {
           />
         )}
 
+        {activeTab === 'cashiers' && (
+          // Manager-facing CRUD page for their cashiers.
+          <CashierManager user={user} />
+        )}
+
         {activeTab === 'analytics' && (
-          <CostAnalysis recipes={recipeManager.recipes} />
+          <CostAnalysis user={user} />
         )}
       </div>
         <Analytics />
@@ -254,6 +220,7 @@ const RecipeCostCalculator = () => {
         <Route path="/" element={<LandingWithRoute />} />
         <Route path="/app" element={<MainApp />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/cashier" element={<CashierPOS user={null} />} />
       </Routes>
     </Router>
   );
