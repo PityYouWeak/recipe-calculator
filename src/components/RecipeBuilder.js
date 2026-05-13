@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Save, Trash2 } from 'lucide-react';
 import HelpSection from './HelpSection';
 import calculateRecipeCost from '../utils/RecipeCostCalculator';
