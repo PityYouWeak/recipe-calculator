@@ -66,7 +66,7 @@ const MainApp = () => {
 
   // Load inventory from DB after user is set
   useEffect(() => {
-    if (user && user.id) {
+    if (user.id) {
       InventoryManager.syncWithDb(user.id).then(setInventoryManager);
     }
   }, [user?.id]);
