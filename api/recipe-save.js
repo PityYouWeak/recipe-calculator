@@ -27,11 +27,13 @@ export default async function handler(req, res) {
       `;
       // Remove old ingredients for this recipe
       await sql`DELETE FROM recipe_ingredients WHERE recipe_id = ${id}`;
-      // Re-insert ingredients
+      // Re-insert ingredients (normalize ingredient_id to id)
       for (const ing of ingredients) {
+        const ingredientId = ing.ingredient_id || ing.id;
+        if (!ingredientId) continue; // Skip ingredients without an ID
         await sql`
           INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity)
-          VALUES (${id}, ${ing.id}, ${ing.quantity});
+          VALUES (${id}, ${ingredientId}, ${ing.quantity});
         `;
       }
       // No need to update user_recipe link (assume user can't change ownership)
@@ -49,11 +51,13 @@ export default async function handler(req, res) {
         INSERT INTO user_recipe (recipe_id, user_id)
         VALUES (${recipeId}, ${userId});
       `;
-      // Insert ingredients for recipe
+      // Insert ingredients for recipe (normalize ingredient_id to id)
       for (const ing of ingredients) {
+        const ingredientId = ing.ingredient_id || ing.id;
+        if (!ingredientId) continue; // Skip ingredients without an ID
         await sql`
           INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity)
-          VALUES (${recipeId}, ${ing.id}, ${ing.quantity});
+          VALUES (${recipeId}, ${ingredientId}, ${ing.quantity});
         `;
       }
     }

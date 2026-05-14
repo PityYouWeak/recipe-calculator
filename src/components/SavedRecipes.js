@@ -1,19 +1,9 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Calculator, Trash2 } from 'lucide-react';
 import calculateRecipeCost from '../utils/RecipeCostCalculator';
 
-const SavedRecipes = ({ user, loadRecipe, deleteRecipe }) => {
-  const [recipes, setRecipes] = useState([]);
-
-  useEffect(() => {
-    if (!user?.id) return;
-    console.log('Fetching recipes for user:', user.id);
-    fetch(`/api/recipes-get?userId=${user.id}`)
-      .then(res => res.json())
-      .then(data => setRecipes(Array.isArray(data) ? data : []))
-      .catch(() => setRecipes([]));
-  }, [user]);
+const SavedRecipes = ({ user, loadRecipe, deleteRecipe, recipes = [] }) => {
 
 
   return (

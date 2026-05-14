@@ -1,17 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { TrendingUp } from 'lucide-react';
 import calculateRecipeCost from '../utils/RecipeCostCalculator';
 
-const CostAnalysis = ({ user }) => {
-  const [recipes, setRecipes] = useState([]);
-
-  useEffect(() => {
-    if (!user?.id) return;
-    fetch(`/api/recipes-get?userId=${user.id}`)
-      .then(res => res.json())
-      .then(data => setRecipes(Array.isArray(data) ? data : []))
-      .catch(() => setRecipes([]));
-  }, [user]);
+const CostAnalysis = ({ user, recipes = [] }) => {
 
   return (
     <div className="card">

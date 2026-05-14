@@ -20,19 +20,18 @@ const MainApp = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  // Redirect to /auth if not actged in
+  // Redirect to /auth if not authenticated
   React.useEffect(() => {
     async function fetchUser() {
       try {
-        const headers = { credentials: 'include' };
-        const token = localStorage.getItem('jwt');
-        if (token) {
-          headers.Authorization = `Bearer ${token}`;
-        }
-        const res = await fetch('/api/auth', { method: 'GET', ...headers });
+        const res = await fetch('/api/auth', { method: 'GET', credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
+          // Redirect cashiers away from manager page
+          if (data.user.role === 'cashier') {
+            navigate('/cashier');
+          }
         } else {
           setUser(null);
           navigate('/auth');
@@ -54,6 +53,7 @@ const MainApp = () => {
   const [activeTab, setActiveTab] = useState('inventory');
   const [inventoryManager, setInventoryManager] = useState(null);
   const [recipeManager, setRecipeManager] = useState(() => RecipeManager.load());
+  const [cachedRecipes, setCachedRecipes] = useState([]);
   const [currentRecipe, setCurrentRecipe] = useState({
     name: '',
     ingredients: [],
@@ -69,7 +69,16 @@ const MainApp = () => {
     if (user && user.id) {
       InventoryManager.syncWithDb(user.id).then(setInventoryManager);
     }
-  }, [user]);
+  }, [user?.id]);
+
+  // Cache recipes in App to prevent refetching when switching tabs
+  useEffect(() => {
+    if (!user?.id) return;
+    fetch(`/api/recipes-get?userId=${user.id}`)
+      .then(res => res.json())
+      .then(data => setCachedRecipes(Array.isArray(data) ? data : []))
+      .catch(() => setCachedRecipes([]));
+  }, [user?.id]);
 
   // If manager just logged in, the AuthPage sets a session flag so we can
   // activate the Cashier tab once and then clear the flag.
@@ -83,7 +92,7 @@ const MainApp = () => {
     } catch {
       // ignore session errors
     }
-  }, [user]);
+  }, [user?.id]);
 
   // Save inventory to localStorage when inventoryManager changes
   useEffect(() => {
@@ -192,6 +201,7 @@ const MainApp = () => {
             user={user}
             loadRecipe={loadRecipe}
             deleteRecipe={deleteRecipe}
+            recipes={cachedRecipes}
           />
         )}
 
@@ -201,7 +211,7 @@ const MainApp = () => {
         )}
 
         {activeTab === 'analytics' && (
-          <CostAnalysis user={user} />
+          <CostAnalysis user={user} recipes={cachedRecipes} />
         )}
       </div>
         <Analytics />

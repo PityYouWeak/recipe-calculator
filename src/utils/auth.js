@@ -9,12 +9,7 @@ export async function loginOrRegister({ email, password, name, type }) {
 }
 
 export async function getCurrentUser() {
-  const headers = { credentials: 'include' };
-  const token = localStorage.getItem('jwt');
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-  const res = await fetch('/api/auth', { method: 'GET', ...headers });
+  const res = await fetch('/api/auth', { method: 'GET', credentials: 'include' });
   if (res.ok) return await res.json();
   return null;
 }
